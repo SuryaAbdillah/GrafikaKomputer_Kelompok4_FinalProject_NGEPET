@@ -2,8 +2,8 @@
 	position: absolute;
 	width: 100%;
 	height: 100%;
-	background: -webkit-linear-gradient(#e4e0ba, #f7d9aa);
-	background: linear-gradient(#e4e0ba, #f7d9aa);
+	background: -webkit-linear-gradient(#8ebdf3, #8ebdf3);
+	background: linear-gradient(#8ebdf3, #8ebdf3);
 }
 
 .world {
