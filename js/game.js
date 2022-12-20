@@ -384,12 +384,24 @@ Land.prototype.moveWaves = function (){
 Cloud = function(){
   this.mesh = new THREE.Object3D();
   this.mesh.name = "cloud";
-  var geom = new THREE.CubeGeometry(20,20,20);
+  var geom = new THREE.SphereGeometry(21.5,5,6);
+  //geom.translate(25,0,0);
   var mat = new THREE.MeshPhongMaterial({
     color:Colors.white,
-
+    flatShading: true,
   });
 
+  var map = (val, smin, smax, emin, emax) => (emax-emin)*(val-smin)/(smax-smin) + emin
+
+  var jitter = (geom,per) => geom.vertices.forEach(v => {
+    v.x += map(Math.random(),0,1,-per,per)
+    v.y += map(Math.random(),0,1,-per,per)
+    v.z += map(Math.random(),0,1,-per,per)
+  })
+  jitter(geom,0.2)
+
+  var chopBottom = (geom,bottom) => geom.vertices.forEach(v => v.y = Math.max(v.y,bottom))
+  // chopBottom(geom,-0.5)  
   //*
   var nBlocs = 3+Math.floor(Math.random()*3);
   for (var i=0; i<nBlocs; i++ ){
