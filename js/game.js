@@ -56,11 +56,11 @@ function resetGame(){
           planeCollisionDisplacementY:0,
           planeCollisionSpeedY:0,
 
-          seaRadius:600,
-          seaLength:800,
-          //seaRotationSpeed:0.006,
-          wavesMinAmp : 5,
-          wavesMaxAmp : 20,
+          landRadius:600,             //
+          landLength:800,             //
+          //landRotationSpeed:0.006,  //
+          wavesMinAmp : 1,            // before: 5
+          wavesMaxAmp : 10,           // before: 20
           wavesMinSpeed : 0.001,
           wavesMaxSpeed : 0.003,
 
@@ -315,7 +315,7 @@ Sky = function(){
     var c = new Cloud();
     this.clouds.push(c);
     var a = stepAngle*i;
-    var h = game.seaRadius + 150 + Math.random()*200;
+    var h = game.landRadius + 150 + Math.random()*200;
     c.mesh.position.y = Math.sin(a)*h;
     c.mesh.position.x = Math.cos(a)*h;
     c.mesh.position.z = -300-Math.random()*500;
@@ -335,8 +335,8 @@ Sky.prototype.moveClouds = function(){
 
 }
 
-Sea = function(){
-  var geom = new THREE.CylinderGeometry(game.seaRadius,game.seaRadius,game.seaLength,40,10);
+Land = function(){
+  var geom = new THREE.CylinderGeometry(game.landRadius,game.landRadius,game.landLength,40,10);
   geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
   geom.mergeVertices();
   var l = geom.vertices.length;
@@ -354,10 +354,10 @@ Sea = function(){
                      speed:game.wavesMinSpeed + Math.random()*(game.wavesMaxSpeed - game.wavesMinSpeed)
                     });
   };
-  var mat = new THREE.MeshPhongMaterial({
-    color:Colors.blue,
+  var mat = new THREE.MeshStandardMaterial({  // phong -> standard
+    color:0x6F2005,
     transparent:true,
-    opacity:.8,
+    opacity:1,
     shading:THREE.FlatShading,
 
   });
@@ -368,7 +368,7 @@ Sea = function(){
 
 }
 
-Sea.prototype.moveWaves = function (){
+Land.prototype.moveWaves = function (){
   var verts = this.mesh.geometry.vertices;
   var l = verts.length;
   for (var i=0; i<l; i++){
@@ -449,8 +449,8 @@ EnnemiesHolder.prototype.spawnEnnemies = function(){
     }
 
     ennemy.angle = - (i*0.1);
-    ennemy.distance = game.seaRadius + game.planeDefaultHeight + (-1 + Math.random() * 2) * (game.planeAmpHeight-20);
-    ennemy.mesh.position.y = -game.seaRadius + Math.sin(ennemy.angle)*ennemy.distance;
+    ennemy.distance = game.landRadius + game.planeDefaultHeight + (-1 + Math.random() * 2) * (game.planeAmpHeight-20);
+    ennemy.mesh.position.y = -game.landRadius + Math.sin(ennemy.angle)*ennemy.distance;
     ennemy.mesh.position.x = Math.cos(ennemy.angle)*ennemy.distance;
 
     this.mesh.add(ennemy.mesh);
@@ -465,7 +465,7 @@ EnnemiesHolder.prototype.rotateEnnemies = function(){
 
     if (ennemy.angle > Math.PI*2) ennemy.angle -= Math.PI*2;
 
-    ennemy.mesh.position.y = -game.seaRadius + Math.sin(ennemy.angle)*ennemy.distance;
+    ennemy.mesh.position.y = -game.landRadius + Math.sin(ennemy.angle)*ennemy.distance;
     ennemy.mesh.position.x = Math.cos(ennemy.angle)*ennemy.distance;
     ennemy.mesh.rotation.z += Math.random()*.1;
     ennemy.mesh.rotation.y += Math.random()*.1;
@@ -495,7 +495,7 @@ EnnemiesHolder.prototype.rotateEnnemies = function(){
 Particle = function(){
   var geom = new THREE.TetrahedronGeometry(3,0);
   var mat = new THREE.MeshPhongMaterial({
-    color:0x009999,
+    color:0xFFA500,
     shininess:0,
     specular:0xffffff,
     shading:THREE.FlatShading
@@ -569,7 +569,7 @@ CoinsHolder = function (nCoins){
 CoinsHolder.prototype.spawnCoins = function(){
 
   var nCoins = 1 + Math.floor(Math.random()*10);
-  var d = game.seaRadius + game.planeDefaultHeight + (-1 + Math.random() * 2) * (game.planeAmpHeight-20);
+  var d = game.landRadius + game.planeDefaultHeight + (-1 + Math.random() * 2) * (game.planeAmpHeight-20);
   var amplitude = 10 + Math.round(Math.random()*10);
   for (var i=0; i<nCoins; i++){
     var coin;
@@ -582,7 +582,7 @@ CoinsHolder.prototype.spawnCoins = function(){
     this.coinsInUse.push(coin);
     coin.angle = - (i*0.02);
     coin.distance = d + Math.cos(i*.5)*amplitude;
-    coin.mesh.position.y = -game.seaRadius + Math.sin(coin.angle)*coin.distance;
+    coin.mesh.position.y = -game.landRadius + Math.sin(coin.angle)*coin.distance;
     coin.mesh.position.x = Math.cos(coin.angle)*coin.distance;
   }
 }
@@ -593,7 +593,7 @@ CoinsHolder.prototype.rotateCoins = function(){
     if (coin.exploding) continue;
     coin.angle += game.speed*deltaTime*game.coinsSpeed;
     if (coin.angle>Math.PI*2) coin.angle -= Math.PI*2;
-    coin.mesh.position.y = -game.seaRadius + Math.sin(coin.angle)*coin.distance;
+    coin.mesh.position.y = -game.landRadius + Math.sin(coin.angle)*coin.distance;
     coin.mesh.position.x = Math.cos(coin.angle)*coin.distance;
     coin.mesh.rotation.z += Math.random()*.1;
     coin.mesh.rotation.y += Math.random()*.1;
@@ -604,7 +604,7 @@ CoinsHolder.prototype.rotateCoins = function(){
     if (d<game.coinDistanceTolerance){
       this.coinsPool.unshift(this.coinsInUse.splice(i,1)[0]);
       this.mesh.remove(coin.mesh);
-      particlesHolder.spawnParticles(coin.mesh.position.clone(), 5, 0x009999, .8);
+      particlesHolder.spawnParticles(coin.mesh.position.clone(), 5, 0xFFA500, .8);
       addEnergy();
       i--;
     }else if (coin.angle > Math.PI){
@@ -617,7 +617,7 @@ CoinsHolder.prototype.rotateCoins = function(){
 
 
 // 3D Models
-var sea;
+var land;
 var airplane;
 
 function createPlane(){
@@ -627,15 +627,15 @@ function createPlane(){
   scene.add(airplane.mesh);
 }
 
-function createSea(){
-  sea = new Sea();
-  sea.mesh.position.y = -game.seaRadius;
-  scene.add(sea.mesh);
+function createLand(){
+  land = new Land();
+  land.mesh.position.y = -game.landRadius;
+  scene.add(land.mesh);
 }
 
 function createSky(){
   sky = new Sky();
-  sky.mesh.position.y = -game.seaRadius;
+  sky.mesh.position.y = -game.landRadius;
   scene.add(sky.mesh);
 }
 
@@ -651,7 +651,6 @@ function createEnnemies(){
     ennemiesPool.push(ennemy);
   }
   ennemiesHolder = new EnnemiesHolder();
-  //ennemiesHolder.mesh.position.y = -game.seaRadius;
   scene.add(ennemiesHolder.mesh)
 }
 
@@ -661,7 +660,6 @@ function createParticles(){
     particlesPool.push(particle);
   }
   particlesHolder = new ParticlesHolder();
-  //ennemiesHolder.mesh.position.y = -game.seaRadius;
   scene.add(particlesHolder.mesh)
 }
 
@@ -722,9 +720,9 @@ function loop(){
   }
 
 
-  sea.mesh.rotation.z += game.speed*deltaTime;//*game.seaRotationSpeed;
+  land.mesh.rotation.z += game.speed*deltaTime; //*game.landRotationSpeed;
 
-  if ( sea.mesh.rotation.z > 2*Math.PI)  sea.mesh.rotation.z -= 2*Math.PI;
+  if ( land.mesh.rotation.z > 2*Math.PI)  land.mesh.rotation.z -= 2*Math.PI;
 
   ambientLight.intensity += (.5 - ambientLight.intensity)*deltaTime*0.005;
 
@@ -732,7 +730,7 @@ function loop(){
   ennemiesHolder.rotateEnnemies();
 
   sky.moveClouds();
-  sea.moveWaves();
+  land.moveWaves();
 
   renderer.render(scene, camera);
   requestAnimationFrame(loop);
@@ -841,7 +839,7 @@ function init(event){
 
   createLights();
   createPlane();
-  createSea();
+  createLand();
   createSky();
   createCoins();
   createEnnemies();
