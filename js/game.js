@@ -2,13 +2,7 @@
 //C VARIABEL DECLARASI WARNA
 var Colors = {
     red:0xf25346,
-    white:0xd8d0d1,
     cloud:0x8B7E74,
-    brown:0x59332e,
-    brownDark:0x23190f,
-    pink:0xF5986E,
-    yellow:0xf4ce93,
-    blue:0x68c3c0,
     babi: 0xE98EAD,
     tanah: 0x472183,
     kesanHilang: 0xF3CCFF,
@@ -31,9 +25,9 @@ var particlesInUse = [];
 function resetGame(){
   game = {// VARIABEL TENTANG KECEPATAN
           speed:0,
-          initSpeed:.0002,
-          baseSpeed:.0002,
-          targetBaseSpeed:.00035,
+          initSpeed:.0004,
+          baseSpeed:.0004,
+          targetBaseSpeed:.0004,
           incrementSpeedByTime:.0000025,
           incrementSpeedByLevel:.000005,
           distanceForSpeedUpdate:100,
@@ -113,7 +107,6 @@ var HEIGHT, WIDTH,
     mousePos = { x: 0, y: 0 };
 
 //INIT THREE JS, SCREEN AND MOUSE EVENTS
-
 // FUNGSI UNTUK MEMBUAT SCENE
 function createScene() {
   HEIGHT = window.innerHeight;
@@ -129,7 +122,7 @@ function createScene() {
     aspectRatio,
     nearPlane,
     farPlane
-    );
+  );
   // KESAN MENGHILANG
   scene.fog = new THREE.Fog(Colors.kesanHilang, 100, 950);
   camera.position.x = 0;
@@ -191,7 +184,7 @@ function handleTouchEnd(event){
 }
 
 // LIGHTS
-var ambientLight, hemisphereLight, shadowLight;
+var ambientLight, hemisphereLight, shadowLight; // shadowLight untuk menampung directionalLight
 
 // FUNGSI MEMBUAT PENCAHAYAAN
 function createLights() {
@@ -211,83 +204,76 @@ function createLights() {
   shadowLight.shadow.mapSize.width = 4096;
   shadowLight.shadow.mapSize.height = 4096;
 
-  // var ch = new THREE.CameraHelper(shadowLight.shadow.camera);
-
-  // scene.add(ch);
   scene.add(hemisphereLight);
   scene.add(shadowLight);
   scene.add(ambientLight);
 }
 
-// SUNGSI MEMBUAT BABIK TERBANG
+function createLambert(color) {
+  return lambert = new THREE.MeshLambertMaterial({color: color});
+}
+
+function createBoxBabi(width, height, depth, widthSegments, heightSegments, depthSegments, mesh) {
+  var geom = new THREE.BoxGeometry(width, height, depth, widthSegments, heightSegments, depthSegments);
+  var mesh = new THREE.Mesh(geom, mesh);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
+// FUNGSI MEMBUAT BABIK TERBANG
 var BabiTerbang = function(){
-	this.mesh = new THREE.Object3D();
+  this.mesh = new THREE.Object3D();
   this.mesh.name = "airPlane";
   
-  this.pinkMat = new THREE.MeshLambertMaterial({color: Colors.babi, shading: THREE.FlatShading,});
+  this.pinkMat = createLambert(Colors.babi);
+  this.holeMat = createLambert("#983154");
+  this.whiteMat = createLambert("white");
+  this.blackMat = createLambert("black");
+  this.nailMat = createLambert("#48261a");
 
-  this.holeMat = new THREE.MeshLambertMaterial({color: "#983154", shading: THREE.FlatShading});
-
-  this.whiteMat = new THREE.MeshLambertMaterial({color: "white", shading: THREE.FlatShading});
-
-  this.blackMat = new THREE.MeshLambertMaterial({color: "black", shading: THREE.FlatShading});
-
-  this.nailMat = new THREE.MeshLambertMaterial({color: "#48261a", shading: THREE.FlatShading});
   // Create the Body
-	var geomBody = new THREE.BoxGeometry(80,60,60,1,1,1);
-  var Body = new THREE.Mesh(geomBody, this.pinkMat);
-  Body.castShadow = true;
-  Body.receiveShadow = true;
-  this.mesh.add(Body);
-
+	var box = createBoxBabi(80,60,60,1,1,1,this.pinkMat);
+  this.mesh.add(box);
+  
   // Create Head
-  var geomHead = new THREE.BoxGeometry(56,56,40,1,1,1);
-  var Head = new THREE.Mesh(geomHead, this.pinkMat);
-  Head.position.x = 65;
-  Head.position.y = 10;
-  Head.castShadow = true;
-  Head.receiveShadow = true;
-	this.mesh.add(Head);
-
+	var box = createBoxBabi(56,56,40,1,1,1,this.pinkMat);
+  box.position.x = 65;
+  box.position.y = 10;
+  this.mesh.add(box);
+  
   //Create Snout
-  var geomSnout = new THREE.BoxGeometry(22,12,18,1,1,1);
-  var Snout = new THREE.Mesh(geomSnout, this.pinkMat);
-  Snout.position.x = 88;
-  Snout.position.y = 5;
-  Snout.castShadow = true;
-  Snout.receiveShadow = true;
-	this.mesh.add(Snout);
+	var box = createBoxBabi(22,12,18,1,1,1,this.pinkMat);
+  box.position.x = 88;
+  box.position.y = 5;
+  this.mesh.add(box);
   
   //Create Hole
-  var geomSnout = new THREE.BoxGeometry(1,5,5,1,1,1);
-  var leftSnout = new THREE.Mesh(geomSnout, this.holeMat);
-  leftSnout.position.set(100,5,-5);
-	this.mesh.add(leftSnout);
-
-  var rightSnout = new THREE.Mesh(geomSnout, this.holeMat);
-  rightSnout.position.set(100,5,5);
-	this.mesh.add(rightSnout);
+	var box = createBoxBabi(1,5,5,1,1,1,this.holeMat);
+  box.position.set(100,5,-5);
+  this.mesh.add(box);
+  
+  var box = createBoxBabi(1,5,5,1,1,1, this.holeMat);
+  box.position.set(100,5,5);
+	this.mesh.add(box);
 
   // Create EYE
-  var geomeye = new THREE.BoxGeometry(14,8,11,1,1,1);
-  var eyeRight = new THREE.Mesh(geomeye, this.whiteMat);
-  eyeRight.position.set(88,20,-10);
-  this.mesh.add(eyeRight);
+  var box = createBoxBabi(14,8,11,1,1,1, this.whiteMat);
+  box.position.set(88,20,-10);
+  this.mesh.add(box);
 
-  var eyeRight = new THREE.Mesh(geomeye, this.whiteMat);
-  eyeRight.position.set(88,20,10);
-  this.mesh.add(eyeRight);
+  var box = createBoxBabi(14,8,11,1,1,1, this.whiteMat);
+  box.position.set(88,20,10);
+  this.mesh.add(box);
 
   // Create Retina
-  var geomeye = new THREE.BoxGeometry(14,8,5.5,1,1,1);
-  var eyeRight = new THREE.Mesh(geomeye, this.blackMat);
-  eyeRight.position.set(90,20,12);
-  this.mesh.add(eyeRight);
-
-  var eyeRight = new THREE.Mesh(geomeye, this.blackMat);
-  eyeRight.position.set(90,20,-12);
-  this.mesh.add(eyeRight);
-
+  var box = createBoxBabi(14,8,5.5,1,1,1, this.blackMat);
+  box.position.set(90,20,12);
+  this.mesh.add(box);
+  
+  var box = createBoxBabi(14,8,5.5,1,1,1, this.blackMat);
+  box.position.set(90,20,-12);
+  this.mesh.add(box);
 
   // Create LeftLeg
   var geomLeg= new THREE.BoxGeometry(25,35,20,1,1,1);
@@ -329,49 +315,47 @@ var BabiTerbang = function(){
 	this.mesh.add(groupingSayap);
 };
 
-// FUNGSI MEMBUAT SAYAP DALAM
-function createSayapAwal() {
+const extrudeSettings = { 
+  depth: 1, 
+  bevelEnabled: true, 
+  bevelSegments: 2, 
+  steps: 2, 
+  bevelSize: 1, 
+  bevelThickness: 1
+};
+
+function createExtrude(shape, pos) {
   material = new THREE.MeshLambertMaterial({color: Colors.babi});
-  
-  let shape = new THREE.Shape();
-  const pos = new THREE.Vector3();
-  let rot = 0;
-
-  panjang = 20;
-  shape.moveTo(0, 0);
-  shape.lineTo(5,0);
-  shape.lineTo(5,10);
-  shape.lineTo(0,10);
-  shape.lineTo(0,0);
-
-  const extrudeSettings = { 
-      depth: 1, 
-      bevelEnabled: true, 
-      bevelSegments: 2, 
-      steps: 2, 
-      bevelSize: 1, 
-      bevelThickness: 1
-  };
-
   geometry = new THREE.ExtrudeBufferGeometry( shape, extrudeSettings );
   mesh = new THREE.Mesh( geometry, material );
-
   mesh.position.copy(pos);
-  mesh.rotation.z = rot;
-
+  mesh.rotation.z = 0;
   mesh.castShadow = true;
   mesh.receiveShadow = true;
 
   return mesh;
 }
 
-// FUNGSI MEMBUAT SAYAP LUAR
-function createSayapAkhir() {
-  material = new THREE.MeshLambertMaterial({color: Colors.babi});
-  
+// FUNGSI MEMBUAT SAYAP DALAM
+function createSayapAwal() {
   let shape = new THREE.Shape();
   const pos = new THREE.Vector3();
-  let rot = 0;
+
+  shape.moveTo(0, 0);
+  shape.lineTo(5,0);
+  shape.lineTo(5,10);
+  shape.lineTo(0,10);
+  shape.lineTo(0,0);
+
+  mesh = createExtrude(shape, pos);
+
+  return mesh;
+}
+
+// FUNGSI MEMBUAT SAYAP LUAR
+function createSayapAkhir() {
+  let shape = new THREE.Shape();
+  const pos = new THREE.Vector3();
 
   panjang = 20;
   shape.moveTo(0, 0);
@@ -380,25 +364,19 @@ function createSayapAkhir() {
   shape.lineTo(0,10);
   shape.lineTo(0,0);
 
-  const extrudeSettings = { 
-      depth: 1, 
-      bevelEnabled: true, 
-      bevelSegments: 2, 
-      steps: 2, 
-      bevelSize: 1, 
-      bevelThickness: 1
-  };
-
-  geometry = new THREE.ExtrudeBufferGeometry( shape, extrudeSettings );
-  mesh = new THREE.Mesh( geometry, material );
-
-  mesh.position.copy(pos);
-  mesh.rotation.z = rot;
-
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
+  mesh = createExtrude(shape, pos);
 
   return mesh;
+}
+
+function mergeSayap(x, y, z, rotY) {
+  const sayap = createSayapAkhir();
+  sayap.position.x = x;
+  sayap.position.y = y;
+  sayap.position.z = z;
+  
+  sayap.rotation.y = rotY;
+  return sayap;
 }
 
 // FUNGSI MEMBUAT SATU FULL SATU SISI SAYAP
@@ -411,36 +389,16 @@ function createWing() {
   sayap.position.z = 0;
   wing.add(sayap);
 
-  const sayap2 = createSayapAkhir();
-  sayap2.position.x = 5;
-  sayap2.position.y = 0;
-  sayap2.position.z = 0;
-  
-  sayap2.rotation.y = 3*(360-37)/180;
+  const sayap2 = mergeSayap(5,0,0,3*(360-37)/180);
   wing.add(sayap2);
-  
-  const sayap3 = createSayapAkhir();
-  sayap3.position.x =17;
-  sayap3.position.y = 0;
-  sayap3.position.z = 0;
-  
-  sayap3.rotation.y = -(3*(180-53)/180);
+
+  const sayap3 = mergeSayap(17,0,0,-(3*(180-53)/180));
   wing.add(sayap3);
-  
-  const sayap4 = createSayapAkhir();
-  sayap4.position.x = 17;
-  sayap4.position.y = 0;
-  sayap4.position.z = 0;
-  
-  sayap4.rotation.y = 3*(360-37)/180;
+
+  const sayap4 = mergeSayap(17,0,0,3*(360-37)/180);
   wing.add(sayap4);
-  
-  const sayap5 = createSayapAkhir();
-  sayap5.position.x = 33;
-  sayap5.position.y = 0;
-  sayap5.position.z = 10;
-  
-  sayap5.rotation.y = 3;
+
+  const sayap5 = mergeSayap(33,0,10,3);
   wing.add(sayap5);
 
   return wing;
@@ -451,7 +409,6 @@ function createFullWing(){
   const duaSayap = new THREE.Group();
   const wing = createWing();
   wing.rotation.x = -2;
-  // wing.scale.set(2,2,2);
   duaSayap.add(wing);
   
   const wing2 = createWing();
@@ -461,7 +418,6 @@ function createFullWing(){
   wing2.position.x = -10;
   wing2.position.z = -10;
   wing2.position.y = -5;
-  // wing2.scale.set(2,2,2);
   duaSayap.add(wing2);
 
   return duaSayap;
@@ -495,7 +451,6 @@ Sky.prototype.moveClouds = function(){
     c.rotate();
   }
   this.mesh.rotation.z += game.speed*deltaTime;
-
 }
 
 // FUNGSI MEMBUAT TANAH / BUMI
@@ -550,7 +505,6 @@ Cloud = function(){
   this.mesh = new THREE.Object3D();
   this.mesh.name = "cloud";
   var geom = new THREE.SphereGeometry(21.5,5,6);
-  //geom.translate(25,0,0);
   var mat = new THREE.MeshPhongMaterial({
     color:Colors.cloud,
     flatShading: true,
@@ -565,9 +519,6 @@ Cloud = function(){
   })
   jitter(geom,0.2)
 
-  var chopBottom = (geom,bottom) => geom.vertices.forEach(v => v.y = Math.max(v.y,bottom))
-  // chopBottom(geom,-0.5)  
-  //*
   var nBlocs = 3+Math.floor(Math.random()*3);
   for (var i=0; i<nBlocs; i++ ){
     var m = new THREE.Mesh(geom.clone(), mat);
@@ -581,9 +532,7 @@ Cloud = function(){
     this.mesh.add(m);
     m.castShadow = true;
     m.receiveShadow = true;
-
   }
-  //*/
 }
 
 // FUNGSI MENGATUR ROTASI AWAN
@@ -597,119 +546,71 @@ Cloud.prototype.rotate = function(){
 }
 
 // FUNGSI MEMBUAT KANDANG
-function createBox() {
+function createBox(y) {
   const geometry = new THREE.BoxGeometry( 50, 5, 50 );
   const material = new THREE.MeshLambertMaterial( {color: Colors.kandang } );
   const cube = new THREE.Mesh( geometry, material );
   
+  cube.position.y = y;
+
   cube.castShadow = true;
   cube.receiveShadow = true;
-
   return cube;
 }
 
-function createCylinder() {
+function createCylinder(x,z) {
   const geometry = new THREE.CylinderGeometry( radiusTop=2, radiusBottom=2, height=48, radialSegments=100 );
   const material = new THREE.MeshLambertMaterial( {color: Colors.kandang} );
   const cylinder = new THREE.Mesh( geometry, material );
   
+  cylinder.position.x = x;
+  cylinder.position.z = z;
+
   cylinder.castShadow = true;
   cylinder.receiveShadow = true;
-
   return cylinder;
 }
 
 Kandang = function() {
   const grupKandang = new THREE.Group();
 
-  const box = new createBox();
-  box.position.y = -25;
+  const box = new createBox(-25);
   grupKandang.add(box);
 
-  const box2 = new createBox();
-  box2.position.y = 25;
+  const box2 = new createBox(25);
   grupKandang.add(box2);
 
-  const bar1 = new createCylinder();
-  bar1.position.x = 20;
-  bar1.position.z = 20;
+  const bar1 = new createCylinder(20,20);
   grupKandang.add(bar1);
-  
-  const bar2 = new createCylinder();
-  bar2.position.x = -20;
-  bar2.position.z = 20;
+  const bar2 = new createCylinder(-20,20);
   grupKandang.add(bar2);
-
-  
-  const bar3 = new createCylinder();
-  bar3.position.x = 20;
-  bar3.position.z = -20;
+  const bar3 = new createCylinder(20,-20);
   grupKandang.add(bar3);
-
-
-  const bar4 = new createCylinder();
-  bar4.position.x = -20;
-  bar4.position.z = -20;
+  const bar4 = new createCylinder(-20,-20);
   grupKandang.add(bar4);
-  
-  const bar5 = new createCylinder();
-  bar5.position.x = 0;
-  bar5.position.z = 20;
+  const bar5 = new createCylinder(0,20);
   grupKandang.add(bar5);
-  
-  const bar6 = new createCylinder();
-  bar6.position.x = -20;
-  bar6.position.z = 0;
+  const bar6 = new createCylinder(-20,0);
   grupKandang.add(bar6);
-  
-  const bar7 = new createCylinder();
-  bar7.position.x = 0;
-  bar7.position.z = -20;
+  const bar7 = new createCylinder(0,-20);
   grupKandang.add(bar7);
-
-  const bar8 = new createCylinder();
-  bar8.position.x = 20;
-  bar8.position.z = 0;
+  const bar8 = new createCylinder(20,0);
   grupKandang.add(bar8);
-
-  const bar9 = new createCylinder();
-  bar9.position.x = 10;
-  bar9.position.z = 20;
+  const bar9 = new createCylinder(10,20);
   grupKandang.add(bar9);
-
-  const bar10 = new createCylinder();
-  bar10.position.x = -10;
-  bar10.position.z = 20;
+  const bar10 = new createCylinder(-10,20);
   grupKandang.add(bar10);
-
-  const bar11 = new createCylinder();
-  bar11.position.x = 20;
-  bar11.position.z = -10;
+  const bar11 = new createCylinder(20,-10);
   grupKandang.add(bar11);
-
-  const bar12 = new createCylinder();
-  bar12.position.x = 20;
-  bar12.position.z = 10;
+  const bar12 = new createCylinder(20,10);
   grupKandang.add(bar12);
-
-  const bar13 = new createCylinder();
-  bar13.position.x = -20;
-  bar13.position.z = 10;
+  const bar13 = new createCylinder(-20,10);
   grupKandang.add(bar13);
-
-  const bar14 = new createCylinder();
-  bar14.position.x = -20;
-  bar14.position.z = -10;
+  const bar14 = new createCylinder(-20,-10);
   grupKandang.add(bar14);
-
-  const bar15 = new createCylinder();
-  bar15.position.x = 10;
-  bar15.position.z = -20;
+  const bar15 = new createCylinder(10,-20);
   grupKandang.add(bar15);
-  
-  const bar16 = new createCylinder();
-  bar16.position.x = -10;
-  bar16.position.z = -20;
+  const bar16 = new createCylinder(-10,-20);
   grupKandang.add(bar16);
 
   this.mesh = grupKandang;
@@ -1044,7 +945,6 @@ function updateDistance(){
   fieldDistance.innerHTML = Math.floor(game.distance);
   var d = 502*(1-(game.distance%game.distanceForLevelUpdate)/game.distanceForLevelUpdate);
   levelCircle.setAttribute("stroke-dashoffset", d);
-
 }
 
 var blinkEnergy=false;
