@@ -17,29 +17,32 @@
 1. Salin tautan github
 
 ![image](https://user-images.githubusercontent.com/97737970/208827336-4cc76ff6-ea81-4814-8b91-927c48be73d1.png)
+<br>
 
 2. Buka git bash pada direktori yang diinginkan
 
 ![image](https://user-images.githubusercontent.com/97737970/208827441-a6af9559-b2a4-4891-9b3b-8a25cf729e30.png)
+<br>
 
 3. Jalankan perintahh berikut untuk memulai cloning
 
 ```
 git clone https://github.com/SuryaAbdillah/GrafkomC_Kelompok4_FinalProject_NGEPET.git
 ```
-
-> Clonging telah berhasil dilakukan dan file sudah muncul pada direktori
+> Cloning telah berhasil dilakukan dan file sudah muncul pada direktori
 
 ![image](https://user-images.githubusercontent.com/97737970/208827654-8c78c332-7b7a-452b-96da-0f5593860fae.png)
+<br>
 
-4. Buka file pada IDE Anda, dalam contoh menggunakan VsCOde
+4. Buka file pada IDE Anda, pada contoh menggunakan VSCode
 
-- pilihlah file `index.html`
-- lakukan live server
-- akan mucnul permainan, dan selamat me-ngepet 🐷
+- Pilihlah file `index.html`
+- Lakukan live server
+- Akan muncul permainan, dan selamat me-ngepet 🐷
 
 ![image](https://user-images.githubusercontent.com/97737970/208827888-883c16d6-0ad7-4cb5-b245-dbe765eb58e2.png)
+<br>
 
-### link menuju NGEPET
+### Link menuju NGEPET
 
 https://suryaabdillah.github.io/GrafkomC_Kelompok4_FinalProject_NGEPET/
