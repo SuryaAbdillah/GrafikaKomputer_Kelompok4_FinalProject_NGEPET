@@ -1,13 +1,19 @@
-//COLORS
+// REFERENSI: https://tympanus.net/codrops/2016/04/26/the-aviator-animating-basic-3d-scene-threejs/
+//C VARIABEL DECLARASI WARNA
 var Colors = {
     red:0xf25346,
     white:0xd8d0d1,
+    cloud:0x8B7E74,
     brown:0x59332e,
     brownDark:0x23190f,
     pink:0xF5986E,
     yellow:0xf4ce93,
     blue:0x68c3c0,
-
+    babi: 0xE98EAD,
+    tanah: 0x472183,
+    kesanHilang: 0xF3CCFF,
+    kandang: 0xFFFFFF,
+    koin: 0xFFD700,
 };
 
 ///////////////
@@ -21,87 +27,95 @@ var ennemiesPool = [];
 var particlesPool = [];
 var particlesInUse = [];
 
+// FUNGSI RESET SETIP PERMAINAN
 function resetGame(){
-  game = {speed:0,
-          initSpeed:.00035,
-          baseSpeed:.00035,
+  game = {// VARIABEL TENTANG KECEPATAN
+          speed:0,
+          initSpeed:.0002,
+          baseSpeed:.0002,
           targetBaseSpeed:.00035,
           incrementSpeedByTime:.0000025,
           incrementSpeedByLevel:.000005,
           distanceForSpeedUpdate:100,
           speedLastUpdate:0,
 
+          // TENTANG STATE AWAL
           distance:0,
           ratioSpeedDistance:50,
           energy:100,
           ratioSpeedEnergy:3,
 
+          // STATE TERKAIT LEVEL
           level:1,
           levelLastUpdate:0,
           distanceForLevelUpdate:1000,
 
-          planeDefaultHeight:100,
-          planeAmpHeight:80,
-          planeAmpWidth:75,
-          planeMoveSensivity:0.005,
-          planeRotXSensivity:0.0008,
-          planeRotZSensivity:0.0004,
-          planeFallSpeed:.001,
-          planeMinSpeed:1.2,
-          planeMaxSpeed:1.6,
-          planeSpeed:0,
-          planeCollisionDisplacementX:0,
-          planeCollisionSpeedX:0,
+          // STATE TERKAIT BABI TERBANG
+          babiDefaulHeight:100,
+          babiAmpHeight:80,
+          babiAmpWidth:75,
+          babiMoveSensivity:0.005,
+          babiRotXSensivity:0.0008,
+          babiRotZSensivity:0.0004,
+          babiFallSpeed:.001,
+          babiMinSpeed:1.2,
+          babiMaxSpeed:1.6,
+          babiSpeed:0,
+          babiCollisionDisplacementX:0,
+          babiCollisionSpeedX:0,
 
-          planeCollisionDisplacementY:0,
-          planeCollisionSpeedY:0,
+          babiCollisionDisplacementY:0,
+          babiCollisionSpeedY:0,
 
+          // STATE TENTANG TANAH
           landRadius:600,             //
           landLength:800,             //
-          //landRotationSpeed:0.006,  //
-          wavesMinAmp : 1,            // before: 5
-          wavesMaxAmp : 10,           // before: 20
+          // landRotationSpeed:0.006,  //
+          wavesMinAmp : 30,            // before: 5
+          wavesMaxAmp : 40,           // before: 20
           wavesMinSpeed : 0.001,
           wavesMaxSpeed : 0.003,
 
+          // STATE KAMERA
           cameraFarPos:500,
           cameraNearPos:150,
           cameraSensivity:0.002,
 
-          coinDistanceTolerance:15,
-          coinValue:3,
-          coinsSpeed:.5,
-          coinLastSpawn:0,
-          distanceForCoinsSpawn:100,
+          // STATE TENTANG WORTEL
+          wortelDistanceTolerance:15,
+          wortelValue:3,
+          wortelSpeed:.5,
+          wortelLastSpawn:0,
+          distanceForWortelSpawn:100,
 
-          ennemyDistanceTolerance:10,
-          ennemyValue:10,
-          ennemiesSpeed:.6,
-          ennemyLastSpawn:0,
-          distanceForEnnemiesSpawn:50,
+          // STATE TENTANG KANDANG
+          kandangDistanceTolerance:10,
+          kandangValue:10,
+          kandangSpeed:.6,
+          kandangLastSpawn:0,
+          distanceForKandangSpawn:50,
 
+          // FLAG UNTUK BERMAIN
           status : "playing",
          };
   fieldLevel.innerHTML = Math.floor(game.level);
 }
 
-//THREEJS RELATED VARIABLES
-
+// VARIABEL TERKAIT THREE JS
 var scene,
     camera, fieldOfView, aspectRatio, nearPlane, farPlane,
     renderer,
     container,
     controls;
 
-//SCREEN & MOUSE VARIABLES
-
+// VARIABEL SCREEN & MOUSE
 var HEIGHT, WIDTH,
     mousePos = { x: 0, y: 0 };
 
 //INIT THREE JS, SCREEN AND MOUSE EVENTS
 
+// FUNGSI UNTUK MEMBUAT SCENE
 function createScene() {
-
   HEIGHT = window.innerHeight;
   WIDTH = window.innerWidth;
 
@@ -116,11 +130,12 @@ function createScene() {
     nearPlane,
     farPlane
     );
-  scene.fog = new THREE.Fog(0xf7d9aa, 100,950);
+  // KESAN MENGHILANG
+  scene.fog = new THREE.Fog(Colors.kesanHilang, 100, 950);
   camera.position.x = 0;
   camera.position.z = 200;
-  camera.position.y = game.planeDefaultHeight;
-  //camera.lookAt(new THREE.Vector3(0, 400, 0));
+  camera.position.y = game.babiDefaulHeight;
+  // camera.lookAt(new THREE.Vector3(0, 100, 100));
 
   renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
   renderer.setSize(WIDTH, HEIGHT);
@@ -131,19 +146,11 @@ function createScene() {
   container.appendChild(renderer.domElement);
 
   window.addEventListener('resize', handleWindowResize, false);
-
-  /*
-  controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.minPolarAngle = -Math.PI / 2;
-  controls.maxPolarAngle = Math.PI ;
-
-  //controls.noZoom = true;
-  //controls.noPan = true;
-  //*/
 }
 
 // MOUSE AND SCREEN EVENTS
 
+// FUNGSI UNTUK MENGATUR RESIZE ukuran window
 function handleWindowResize() {
   HEIGHT = window.innerHeight;
   WIDTH = window.innerWidth;
@@ -152,12 +159,14 @@ function handleWindowResize() {
   camera.updateProjectionMatrix();
 }
 
+// FUNSGI UNTUK MENGATUR PERGERAKAN MOUSE
 function handleMouseMove(event) {
   var tx = -1 + (event.clientX / WIDTH)*2;
   var ty = 1 - (event.clientY / HEIGHT)*2;
   mousePos = {x:tx, y:ty};
 }
 
+// FUNGSI UNTUK MENGATUR PERGERAKAN SENTUHAN dari USER
 function handleTouchMove(event) {
     event.preventDefault();
     var tx = -1 + (event.touches[0].pageX / WIDTH)*2;
@@ -165,6 +174,7 @@ function handleTouchMove(event) {
     mousePos = {x:tx, y:ty};
 }
 
+// FUNGSI UNTUK MEMULAI ULANG PERMAINAN, melalui mouse
 function handleMouseUp(event){
   if (game.status == "waitingReplay"){
     resetGame();
@@ -172,7 +182,7 @@ function handleMouseUp(event){
   }
 }
 
-
+// FUNGSI UNTUK MEMULAI ULANG PERMAINAN, melalui sentuhan
 function handleTouchEnd(event){
   if (game.status == "waitingReplay"){
     resetGame();
@@ -181,15 +191,14 @@ function handleTouchEnd(event){
 }
 
 // LIGHTS
-
 var ambientLight, hemisphereLight, shadowLight;
 
+// FUNGSI MEMBUAT PENCAHAYAAN
 function createLights() {
-
   hemisphereLight = new THREE.HemisphereLight(0xaaaaaa,0x000000, .9)
-
   ambientLight = new THREE.AmbientLight(0xdc8874, .5);
 
+  // PENCAHAYAAN UNTUK MEMBUAT BAYANGAN
   shadowLight = new THREE.DirectionalLight(0xffffff, .9);
   shadowLight.position.set(150, 350, 350);
   shadowLight.castShadow = true;
@@ -202,20 +211,20 @@ function createLights() {
   shadowLight.shadow.mapSize.width = 4096;
   shadowLight.shadow.mapSize.height = 4096;
 
-  var ch = new THREE.CameraHelper(shadowLight.shadow.camera);
+  // var ch = new THREE.CameraHelper(shadowLight.shadow.camera);
 
-  //scene.add(ch);
+  // scene.add(ch);
   scene.add(hemisphereLight);
   scene.add(shadowLight);
   scene.add(ambientLight);
-
 }
 
-var AirPlane = function(){
+// SUNGSI MEMBUAT BABIK TERBANG
+var BabiTerbang = function(){
 	this.mesh = new THREE.Object3D();
   this.mesh.name = "airPlane";
   
-  this.pinkMat = new THREE.MeshLambertMaterial({color: "#F48FB1", shading: THREE.FlatShading,});
+  this.pinkMat = new THREE.MeshLambertMaterial({color: Colors.babi, shading: THREE.FlatShading,});
 
   this.holeMat = new THREE.MeshLambertMaterial({color: "#983154", shading: THREE.FlatShading});
 
@@ -304,8 +313,161 @@ var AirPlane = function(){
   RightLegBack.position.set(-35,-45,17);
 
 	this.mesh.add(RightLegBack);
+
+  const groupingSayap = new THREE.Group();
+  const wings = new createFullWing();
+  wings.scale.set(4,4,4);
+  wings.rotation.y = 1.7;
+  wings.rotation.x = 0;
+  wings.rotation.z = 0;
+
+  groupingSayap.add(wings);
+  groupingSayap.rotation.x = -0.06;
+  groupingSayap.rotation.z = -0.4;
+  groupingSayap.position.set(20,0,-21);
+  
+	this.mesh.add(groupingSayap);
 };
 
+// FUNGSI MEMBUAT SAYAP DALAM
+function createSayapAwal() {
+  material = new THREE.MeshLambertMaterial({color: Colors.babi});
+  
+  let shape = new THREE.Shape();
+  const pos = new THREE.Vector3();
+  let rot = 0;
+
+  panjang = 20;
+  shape.moveTo(0, 0);
+  shape.lineTo(5,0);
+  shape.lineTo(5,10);
+  shape.lineTo(0,10);
+  shape.lineTo(0,0);
+
+  const extrudeSettings = { 
+      depth: 1, 
+      bevelEnabled: true, 
+      bevelSegments: 2, 
+      steps: 2, 
+      bevelSize: 1, 
+      bevelThickness: 1
+  };
+
+  geometry = new THREE.ExtrudeBufferGeometry( shape, extrudeSettings );
+  mesh = new THREE.Mesh( geometry, material );
+
+  mesh.position.copy(pos);
+  mesh.rotation.z = rot;
+
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+
+  return mesh;
+}
+
+// FUNGSI MEMBUAT SAYAP LUAR
+function createSayapAkhir() {
+  material = new THREE.MeshLambertMaterial({color: Colors.babi});
+  
+  let shape = new THREE.Shape();
+  const pos = new THREE.Vector3();
+  let rot = 0;
+
+  panjang = 20;
+  shape.moveTo(0, 0);
+  shape.lineTo(10,-5);
+  shape.lineTo(10,15);
+  shape.lineTo(0,10);
+  shape.lineTo(0,0);
+
+  const extrudeSettings = { 
+      depth: 1, 
+      bevelEnabled: true, 
+      bevelSegments: 2, 
+      steps: 2, 
+      bevelSize: 1, 
+      bevelThickness: 1
+  };
+
+  geometry = new THREE.ExtrudeBufferGeometry( shape, extrudeSettings );
+  mesh = new THREE.Mesh( geometry, material );
+
+  mesh.position.copy(pos);
+  mesh.rotation.z = rot;
+
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+
+  return mesh;
+}
+
+// FUNGSI MEMBUAT SATU FULL SATU SISI SAYAP
+function createWing() {
+  const wing = new THREE.Group();
+  
+  const sayap = createSayapAwal();
+  sayap.position.x = 0;
+  sayap.position.y = 0;
+  sayap.position.z = 0;
+  wing.add(sayap);
+
+  const sayap2 = createSayapAkhir();
+  sayap2.position.x = 5;
+  sayap2.position.y = 0;
+  sayap2.position.z = 0;
+  
+  sayap2.rotation.y = 3*(360-37)/180;
+  wing.add(sayap2);
+  
+  const sayap3 = createSayapAkhir();
+  sayap3.position.x =17;
+  sayap3.position.y = 0;
+  sayap3.position.z = 0;
+  
+  sayap3.rotation.y = -(3*(180-53)/180);
+  wing.add(sayap3);
+  
+  const sayap4 = createSayapAkhir();
+  sayap4.position.x = 17;
+  sayap4.position.y = 0;
+  sayap4.position.z = 0;
+  
+  sayap4.rotation.y = 3*(360-37)/180;
+  wing.add(sayap4);
+  
+  const sayap5 = createSayapAkhir();
+  sayap5.position.x = 33;
+  sayap5.position.y = 0;
+  sayap5.position.z = 10;
+  
+  sayap5.rotation.y = 3;
+  wing.add(sayap5);
+
+  return wing;
+}
+
+// FUNGSI MEMBUAT SATU SET SAYAP
+function createFullWing(){
+  const duaSayap = new THREE.Group();
+  const wing = createWing();
+  wing.rotation.x = -2;
+  // wing.scale.set(2,2,2);
+  duaSayap.add(wing);
+  
+  const wing2 = createWing();
+  wing2.rotation.x = -2;
+  wing2.rotation.z = 3;
+  
+  wing2.position.x = -10;
+  wing2.position.z = -10;
+  wing2.position.y = -5;
+  // wing2.scale.set(2,2,2);
+  duaSayap.add(wing2);
+
+  return duaSayap;
+}
+
+// FUNGSI MEMBUAT LANGIT
 Sky = function(){
   this.mesh = new THREE.Object3D();
   this.nClouds = 20;
@@ -326,6 +488,7 @@ Sky = function(){
   }
 }
 
+// FUNGSI MENGATUR PERGERAKAN AWAN
 Sky.prototype.moveClouds = function(){
   for(var i=0; i<this.nClouds; i++){
     var c = this.clouds[i];
@@ -335,6 +498,7 @@ Sky.prototype.moveClouds = function(){
 
 }
 
+// FUNGSI MEMBUAT TANAH / BUMI
 Land = function(){
   var geom = new THREE.CylinderGeometry(game.landRadius,game.landRadius,game.landLength,40,10);
   geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
@@ -355,7 +519,7 @@ Land = function(){
                     });
   };
   var mat = new THREE.MeshStandardMaterial({  // phong -> standard
-    color:0x6F2005,
+    color:Colors.tanah,
     transparent:true,
     opacity:1,
     shading:THREE.FlatShading,
@@ -365,9 +529,9 @@ Land = function(){
   this.mesh = new THREE.Mesh(geom, mat);
   this.mesh.name = "waves";
   this.mesh.receiveShadow = true;
-
 }
 
+// FUNGSI MEMBUAT GELOMBANG PADA BUMI
 Land.prototype.moveWaves = function (){
   var verts = this.mesh.geometry.vertices;
   var l = verts.length;
@@ -381,13 +545,14 @@ Land.prototype.moveWaves = function (){
   }
 }
 
+// FUNGSI MEMBUAT AWAN
 Cloud = function(){
   this.mesh = new THREE.Object3D();
   this.mesh.name = "cloud";
   var geom = new THREE.SphereGeometry(21.5,5,6);
   //geom.translate(25,0,0);
   var mat = new THREE.MeshPhongMaterial({
-    color:Colors.white,
+    color:Colors.cloud,
     flatShading: true,
   });
 
@@ -421,6 +586,7 @@ Cloud = function(){
   //*/
 }
 
+// FUNGSI MENGATUR ROTASI AWAN
 Cloud.prototype.rotate = function(){
   var l = this.mesh.children.length;
   for(var i=0; i<l; i++){
@@ -430,25 +596,133 @@ Cloud.prototype.rotate = function(){
   }
 }
 
-Ennemy = function(){
-  var geom = new THREE.TetrahedronGeometry(8,2);
-  var mat = new THREE.MeshPhongMaterial({
-    color:Colors.red,
-    shininess:0,
-    specular:0xffffff,
-    shading:THREE.FlatShading
-  });
-  this.mesh = new THREE.Mesh(geom,mat);
-  this.mesh.castShadow = true;
-  this.angle = 0;
-  this.dist = 0;
+// FUNGSI MEMBUAT KANDANG
+function createBox() {
+  const geometry = new THREE.BoxGeometry( 50, 5, 50 );
+  const material = new THREE.MeshLambertMaterial( {color: Colors.kandang } );
+  const cube = new THREE.Mesh( geometry, material );
+  
+  cube.castShadow = true;
+  cube.receiveShadow = true;
+
+  return cube;
 }
 
+function createCylinder() {
+  const geometry = new THREE.CylinderGeometry( radiusTop=2, radiusBottom=2, height=48, radialSegments=100 );
+  const material = new THREE.MeshLambertMaterial( {color: Colors.kandang} );
+  const cylinder = new THREE.Mesh( geometry, material );
+  
+  cylinder.castShadow = true;
+  cylinder.receiveShadow = true;
+
+  return cylinder;
+}
+
+Kandang = function() {
+  const grupKandang = new THREE.Group();
+
+  const box = new createBox();
+  box.position.y = -25;
+  grupKandang.add(box);
+
+  const box2 = new createBox();
+  box2.position.y = 25;
+  grupKandang.add(box2);
+
+  const bar1 = new createCylinder();
+  bar1.position.x = 20;
+  bar1.position.z = 20;
+  grupKandang.add(bar1);
+  
+  const bar2 = new createCylinder();
+  bar2.position.x = -20;
+  bar2.position.z = 20;
+  grupKandang.add(bar2);
+
+  
+  const bar3 = new createCylinder();
+  bar3.position.x = 20;
+  bar3.position.z = -20;
+  grupKandang.add(bar3);
+
+
+  const bar4 = new createCylinder();
+  bar4.position.x = -20;
+  bar4.position.z = -20;
+  grupKandang.add(bar4);
+  
+  const bar5 = new createCylinder();
+  bar5.position.x = 0;
+  bar5.position.z = 20;
+  grupKandang.add(bar5);
+  
+  const bar6 = new createCylinder();
+  bar6.position.x = -20;
+  bar6.position.z = 0;
+  grupKandang.add(bar6);
+  
+  const bar7 = new createCylinder();
+  bar7.position.x = 0;
+  bar7.position.z = -20;
+  grupKandang.add(bar7);
+
+  const bar8 = new createCylinder();
+  bar8.position.x = 20;
+  bar8.position.z = 0;
+  grupKandang.add(bar8);
+
+  const bar9 = new createCylinder();
+  bar9.position.x = 10;
+  bar9.position.z = 20;
+  grupKandang.add(bar9);
+
+  const bar10 = new createCylinder();
+  bar10.position.x = -10;
+  bar10.position.z = 20;
+  grupKandang.add(bar10);
+
+  const bar11 = new createCylinder();
+  bar11.position.x = 20;
+  bar11.position.z = -10;
+  grupKandang.add(bar11);
+
+  const bar12 = new createCylinder();
+  bar12.position.x = 20;
+  bar12.position.z = 10;
+  grupKandang.add(bar12);
+
+  const bar13 = new createCylinder();
+  bar13.position.x = -20;
+  bar13.position.z = 10;
+  grupKandang.add(bar13);
+
+  const bar14 = new createCylinder();
+  bar14.position.x = -20;
+  bar14.position.z = -10;
+  grupKandang.add(bar14);
+
+  const bar15 = new createCylinder();
+  bar15.position.x = 10;
+  bar15.position.z = -20;
+  grupKandang.add(bar15);
+  
+  const bar16 = new createCylinder();
+  bar16.position.x = -10;
+  bar16.position.z = -20;
+  grupKandang.add(bar16);
+
+  this.mesh = grupKandang;
+  this.mesh.scale.set(0.5,0.4,0.5);
+}
+
+// holder untuk Kandang
 EnnemiesHolder = function (){
   this.mesh = new THREE.Object3D();
   this.ennemiesInUse = [];
 }
 
+// SPAWNING KANDANG
 EnnemiesHolder.prototype.spawnEnnemies = function(){
   var nEnnemies = game.level;
 
@@ -457,11 +731,11 @@ EnnemiesHolder.prototype.spawnEnnemies = function(){
     if (ennemiesPool.length) {
       ennemy = ennemiesPool.pop();
     }else{
-      ennemy = new Ennemy();
+      ennemy = new Kandang();
     }
 
     ennemy.angle = - (i*0.1);
-    ennemy.distance = game.landRadius + game.planeDefaultHeight + (-1 + Math.random() * 2) * (game.planeAmpHeight-20);
+    ennemy.distance = game.landRadius + game.babiDefaulHeight + (-1 + Math.random() * 2) * (game.babiAmpHeight-20);
     ennemy.mesh.position.y = -game.landRadius + Math.sin(ennemy.angle)*ennemy.distance;
     ennemy.mesh.position.x = Math.cos(ennemy.angle)*ennemy.distance;
 
@@ -470,28 +744,29 @@ EnnemiesHolder.prototype.spawnEnnemies = function(){
   }
 }
 
+// ROTASI KANDANG
 EnnemiesHolder.prototype.rotateEnnemies = function(){
   for (var i=0; i<this.ennemiesInUse.length; i++){
     var ennemy = this.ennemiesInUse[i];
-    ennemy.angle += game.speed*deltaTime*game.ennemiesSpeed;
+    ennemy.angle += game.speed*deltaTime*game.kandangSpeed;
 
     if (ennemy.angle > Math.PI*2) ennemy.angle -= Math.PI*2;
 
     ennemy.mesh.position.y = -game.landRadius + Math.sin(ennemy.angle)*ennemy.distance;
     ennemy.mesh.position.x = Math.cos(ennemy.angle)*ennemy.distance;
-    ennemy.mesh.rotation.z += Math.random()*.1;
-    ennemy.mesh.rotation.y += Math.random()*.1;
+    ennemy.mesh.rotation.z += Math.random()*.03;
+    ennemy.mesh.rotation.y += Math.random()*.03;
 
-    //var globalEnnemyPosition =  ennemy.mesh.localToWorld(new THREE.Vector3());
-    var diffPos = airplane.mesh.position.clone().sub(ennemy.mesh.position.clone());
+    //var globalKandangPosition =  ennemy.mesh.localToWorld(new THREE.Vector3());
+    var diffPos = babiterbang.mesh.position.clone().sub(ennemy.mesh.position.clone());
     var d = diffPos.length();
-    if (d<game.ennemyDistanceTolerance){
-      particlesHolder.spawnParticles(ennemy.mesh.position.clone(), 15, Colors.red, 3);
+    if (d<game.kandangDistanceTolerance){
+      particlesHolder.spawnParticles(ennemy.mesh.position.clone(), 15, Colors.kandang, 3);
 
       ennemiesPool.unshift(this.ennemiesInUse.splice(i,1)[0]);
       this.mesh.remove(ennemy.mesh);
-      game.planeCollisionSpeedX = 100 * diffPos.x / d;
-      game.planeCollisionSpeedY = 100 * diffPos.y / d;
+      game.babiCollisionSpeedX = 100 * diffPos.x / d;
+      game.babiCollisionSpeedY = 100 * diffPos.y / d;
       ambientLight.intensity = 2;
 
       removeEnergy();
@@ -504,10 +779,11 @@ EnnemiesHolder.prototype.rotateEnnemies = function(){
   }
 }
 
+// PARTICLE HASIL TERKENA KOIN
 Particle = function(){
-  var geom = new THREE.TetrahedronGeometry(3,0);
+  var geom = new THREE.TetrahedronGeometry(5,0);
   var mat = new THREE.MeshPhongMaterial({
-    color:0xFFA500,
+    color:Colors.koin,
     shininess:0,
     specular:0xffffff,
     shading:THREE.FlatShading
@@ -515,6 +791,7 @@ Particle = function(){
   this.mesh = new THREE.Mesh(geom,mat);
 }
 
+// ANIMASI EXPLODE TERKENA KANDANG
 Particle.prototype.explode = function(pos, color, scale){
   var _this = this;
   var _p = this.mesh.parent;
@@ -533,13 +810,14 @@ Particle.prototype.explode = function(pos, color, scale){
     }});
 }
 
+// holder untuk particle
 ParticlesHolder = function (){
   this.mesh = new THREE.Object3D();
   this.particlesInUse = [];
 }
 
+// SPAWNING PARTICLE
 ParticlesHolder.prototype.spawnParticles = function(pos, density, color, scale){
-
   var nPArticles = density;
   for (var i=0; i<nPArticles; i++){
     var particle;
@@ -557,17 +835,25 @@ ParticlesHolder.prototype.spawnParticles = function(pos, density, color, scale){
   }
 }
 
+// COIN
 Coin = function(){
-  this.orangebody = new THREE.MeshLambertMaterial({
-    color: "#FFA500", shading: THREE.FlatShading,});
+  var geom = new THREE.CylinderGeometry(4,4,0.8,100);  //
   
-  var geom = new THREE.CylinderGeometry(2,1,10);
-  this.mesh = new THREE.Mesh(geom,this.orangebody);
+  var mat = new THREE.MeshPhongMaterial({
+    color:Colors.koin,   //
+    shininess:3,      //
+    specular:0xffffff,
+
+    shading:THREE.FlatShading
+  });
+
+  this.mesh = new THREE.Mesh(geom,mat); 
   this.mesh.castShadow = true;
   this.angle = 0;
   this.dist = 0;
 }
 
+// holder untuk COIN
 CoinsHolder = function (nCoins){
   this.mesh = new THREE.Object3D();
   this.coinsInUse = [];
@@ -578,10 +864,10 @@ CoinsHolder = function (nCoins){
   }
 }
 
+// SPAWNING untuk COIN
 CoinsHolder.prototype.spawnCoins = function(){
-
   var nCoins = 1 + Math.floor(Math.random()*10);
-  var d = game.landRadius + game.planeDefaultHeight + (-1 + Math.random() * 2) * (game.planeAmpHeight-20);
+  var d = game.landRadius + game.babiDefaulHeight + (-1 + Math.random() * 2) * (game.babiAmpHeight-20);
   var amplitude = 10 + Math.round(Math.random()*10);
   for (var i=0; i<nCoins; i++){
     var coin;
@@ -599,11 +885,12 @@ CoinsHolder.prototype.spawnCoins = function(){
   }
 }
 
+// ROTASI UNTUK COIN
 CoinsHolder.prototype.rotateCoins = function(){
   for (var i=0; i<this.coinsInUse.length; i++){
     var coin = this.coinsInUse[i];
     if (coin.exploding) continue;
-    coin.angle += game.speed*deltaTime*game.coinsSpeed;
+    coin.angle += game.speed*deltaTime*game.wortelSpeed;
     if (coin.angle>Math.PI*2) coin.angle -= Math.PI*2;
     coin.mesh.position.y = -game.landRadius + Math.sin(coin.angle)*coin.distance;
     coin.mesh.position.x = Math.cos(coin.angle)*coin.distance;
@@ -611,9 +898,9 @@ CoinsHolder.prototype.rotateCoins = function(){
     coin.mesh.rotation.y += Math.random()*.1;
 
     //var globalCoinPosition =  coin.mesh.localToWorld(new THREE.Vector3());
-    var diffPos = airplane.mesh.position.clone().sub(coin.mesh.position.clone());
+    var diffPos = babiterbang.mesh.position.clone().sub(coin.mesh.position.clone());
     var d = diffPos.length();
-    if (d<game.coinDistanceTolerance){
+    if (d<game.wortelDistanceTolerance){
       this.coinsPool.unshift(this.coinsInUse.splice(i,1)[0]);
       this.mesh.remove(coin.mesh);
       particlesHolder.spawnParticles(coin.mesh.position.clone(), 5, 0xFFA500, .8);
@@ -627,45 +914,49 @@ CoinsHolder.prototype.rotateCoins = function(){
   }
 }
 
-
 // 3D Models
 var land;
-var airplane;
+var babiterbang;
 
+// MEMBUAT PESAWAT
 function createPlane(){
-  airplane = new AirPlane();
-  airplane.mesh.scale.set(.25,.25,.25);
-  airplane.mesh.position.y = game.planeDefaultHeight;
-  scene.add(airplane.mesh);
+  babiterbang = new BabiTerbang();
+  babiterbang.mesh.scale.set(.25,.25,.25);
+  babiterbang.mesh.position.y = game.babiDefaulHeight;
+  scene.add(babiterbang.mesh);
 }
 
+// MEMBUAT BUMI
 function createLand(){
   land = new Land();
   land.mesh.position.y = -game.landRadius;
   scene.add(land.mesh);
 }
 
+// MEMBUAT LANGIT
 function createSky(){
   sky = new Sky();
   sky.mesh.position.y = -game.landRadius;
   scene.add(sky.mesh);
 }
 
+// MEMBUAT COIN
 function createCoins(){
-
   coinsHolder = new CoinsHolder(20);
   scene.add(coinsHolder.mesh)
 }
 
+// MEMBUAT KANDANG
 function createEnnemies(){
   for (var i=0; i<10; i++){
-    var ennemy = new Ennemy();
+    var ennemy = new Kandang();
     ennemiesPool.push(ennemy);
   }
   ennemiesHolder = new EnnemiesHolder();
   scene.add(ennemiesHolder.mesh)
 }
 
+// MEMBUAT PARTICLE
 function createParticles(){
   for (var i=0; i<10; i++){
     var particle = new Particle();
@@ -675,8 +966,8 @@ function createParticles(){
   scene.add(particlesHolder.mesh)
 }
 
+// LOOPING
 function loop(){
-
   newTime = new Date().getTime();
   deltaTime = newTime-oldTime;
   oldTime = newTime;
@@ -684,8 +975,8 @@ function loop(){
   if (game.status=="playing"){
 
     // Add energy coins every 100m;
-    if (Math.floor(game.distance)%game.distanceForCoinsSpawn == 0 && Math.floor(game.distance) > game.coinLastSpawn){
-      game.coinLastSpawn = Math.floor(game.distance);
+    if (Math.floor(game.distance)%game.distanceForWortelSpawn == 0 && Math.floor(game.distance) > game.wortelLastSpawn){
+      game.wortelLastSpawn = Math.floor(game.distance);
       coinsHolder.spawnCoins();
     }
 
@@ -695,8 +986,8 @@ function loop(){
     }
 
 
-    if (Math.floor(game.distance)%game.distanceForEnnemiesSpawn == 0 && Math.floor(game.distance) > game.ennemyLastSpawn){
-      game.ennemyLastSpawn = Math.floor(game.distance);
+    if (Math.floor(game.distance)%game.distanceForKandangSpawn == 0 && Math.floor(game.distance) > game.kandangLastSpawn){
+      game.kandangLastSpawn = Math.floor(game.distance);
       ennemiesHolder.spawnEnnemies();
     }
 
@@ -708,21 +999,20 @@ function loop(){
       game.targetBaseSpeed = game.initSpeed + game.incrementSpeedByLevel*game.level
     }
 
-
-    updatePlane();
+    updateBabiTerbang();
     updateDistance();
     updateEnergy();
     game.baseSpeed += (game.targetBaseSpeed - game.baseSpeed) * deltaTime * 0.02;
-    game.speed = game.baseSpeed * game.planeSpeed;
+    game.speed = game.baseSpeed * game.babiSpeed;
 
   }else if(game.status=="gameover"){
     game.speed *= .99;
-    airplane.mesh.rotation.z += (-Math.PI/2 - airplane.mesh.rotation.z)*.0002*deltaTime;
-    airplane.mesh.rotation.x += 0.0003*deltaTime;
-    game.planeFallSpeed *= 1.05;
-    airplane.mesh.position.y -= game.planeFallSpeed*deltaTime;
+    babiterbang.mesh.rotation.z += (-Math.PI/2 - babiterbang.mesh.rotation.z)*.0002*deltaTime;
+    babiterbang.mesh.rotation.x += 0.0003*deltaTime;
+    game.babiFallSpeed *= 1.05;
+    babiterbang.mesh.position.y -= game.babiFallSpeed*deltaTime;
 
-    if (airplane.mesh.position.y <-200){
+    if (babiterbang.mesh.position.y <-200){
       showReplay();
       game.status = "waitingReplay";
 
@@ -748,6 +1038,7 @@ function loop(){
   requestAnimationFrame(loop);
 }
 
+// UPDATE NILAI DISTANCE
 function updateDistance(){
   game.distance += game.speed*deltaTime*game.ratioSpeedDistance;
   fieldDistance.innerHTML = Math.floor(game.distance);
@@ -758,6 +1049,7 @@ function updateDistance(){
 
 var blinkEnergy=false;
 
+// UPDATE NILAI ENERGY
 function updateEnergy(){
   game.energy -= game.speed*deltaTime*game.ratioSpeedEnergy;
   game.energy = Math.max(0, game.energy);
@@ -775,45 +1067,46 @@ function updateEnergy(){
   }
 }
 
+// MENAMBAHKAN ENERGi
 function addEnergy(){
-  game.energy += game.coinValue;
+  game.energy += game.wortelValue;
   game.energy = Math.min(game.energy, 100);
 }
 
+// MENGURANGI ENERGY
 function removeEnergy(){
-  game.energy -= game.ennemyValue;
+  game.energy -= game.kandangValue;
   game.energy = Math.max(0, game.energy);
 }
 
+// UPDATE KONDISI BABI
+function updateBabiTerbang(){
+
+  game.babiSpeed = normalize(mousePos.x,-.5,.5,game.babiMinSpeed, game.babiMaxSpeed);
+  var targetY = normalize(mousePos.y,-.75,.75,game.babiDefaulHeight-game.babiAmpHeight, game.babiDefaulHeight+game.babiAmpHeight);
+  var targetX = normalize(mousePos.x,-1,1,-game.babiAmpWidth*.7, -game.babiAmpWidth);
+
+  game.babiCollisionDisplacementX += game.babiCollisionSpeedX;
+  targetX += game.babiCollisionDisplacementX;
 
 
-function updatePlane(){
+  game.babiCollisionDisplacementY += game.babiCollisionSpeedY;
+  targetY += game.babiCollisionDisplacementY;
 
-  game.planeSpeed = normalize(mousePos.x,-.5,.5,game.planeMinSpeed, game.planeMaxSpeed);
-  var targetY = normalize(mousePos.y,-.75,.75,game.planeDefaultHeight-game.planeAmpHeight, game.planeDefaultHeight+game.planeAmpHeight);
-  var targetX = normalize(mousePos.x,-1,1,-game.planeAmpWidth*.7, -game.planeAmpWidth);
+  babiterbang.mesh.position.y += (targetY-babiterbang.mesh.position.y)*deltaTime*game.babiMoveSensivity;
+  babiterbang.mesh.position.x += (targetX-babiterbang.mesh.position.x)*deltaTime*game.babiMoveSensivity;
 
-  game.planeCollisionDisplacementX += game.planeCollisionSpeedX;
-  targetX += game.planeCollisionDisplacementX;
-
-
-  game.planeCollisionDisplacementY += game.planeCollisionSpeedY;
-  targetY += game.planeCollisionDisplacementY;
-
-  airplane.mesh.position.y += (targetY-airplane.mesh.position.y)*deltaTime*game.planeMoveSensivity;
-  airplane.mesh.position.x += (targetX-airplane.mesh.position.x)*deltaTime*game.planeMoveSensivity;
-
-  airplane.mesh.rotation.z = (targetY-airplane.mesh.position.y)*deltaTime*game.planeRotXSensivity;
-  airplane.mesh.rotation.x = (airplane.mesh.position.y-targetY)*deltaTime*game.planeRotZSensivity;
-  var targetCameraZ = normalize(game.planeSpeed, game.planeMinSpeed, game.planeMaxSpeed, game.cameraNearPos, game.cameraFarPos);
+  babiterbang.mesh.rotation.z = (targetY-babiterbang.mesh.position.y)*deltaTime*game.babiRotXSensivity;
+  babiterbang.mesh.rotation.x = (babiterbang.mesh.position.y-targetY)*deltaTime*game.babiRotZSensivity;
+  var targetCameraZ = normalize(game.babiSpeed, game.babiMinSpeed, game.babiMaxSpeed, game.cameraNearPos, game.cameraFarPos);
   camera.fov = normalize(mousePos.x,-1,1,40, 80);
   camera.updateProjectionMatrix ()
-  camera.position.y += (airplane.mesh.position.y - camera.position.y)*deltaTime*game.cameraSensivity;
+  camera.position.y += (babiterbang.mesh.position.y - camera.position.y)*deltaTime*game.cameraSensivity;
 
-  game.planeCollisionSpeedX += (0-game.planeCollisionSpeedX)*deltaTime * 0.03;
-  game.planeCollisionDisplacementX += (0-game.planeCollisionDisplacementX)*deltaTime *0.01;
-  game.planeCollisionSpeedY += (0-game.planeCollisionSpeedY)*deltaTime * 0.03;
-  game.planeCollisionDisplacementY += (0-game.planeCollisionDisplacementY)*deltaTime *0.01;
+  game.babiCollisionSpeedX += (0-game.babiCollisionSpeedX)*deltaTime * 0.03;
+  game.babiCollisionDisplacementX += (0-game.babiCollisionDisplacementX)*deltaTime *0.01;
+  game.babiCollisionSpeedY += (0-game.babiCollisionSpeedY)*deltaTime * 0.03;
+  game.babiCollisionDisplacementY += (0-game.babiCollisionDisplacementY)*deltaTime *0.01;
 
 }
 
