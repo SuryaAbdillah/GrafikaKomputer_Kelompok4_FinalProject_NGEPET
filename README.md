@@ -39,3 +39,7 @@ git clone https://github.com/SuryaAbdillah/GrafkomC_Kelompok4_FinalProject_NGEPE
 - akan mucnul permainan, dan selamat me-ngepet 🐷
 
 ![image](https://user-images.githubusercontent.com/97737970/208827888-883c16d6-0ad7-4cb5-b245-dbe765eb58e2.png)
+
+### link menuju NGEPET
+
+https://suryaabdillah.github.io/GrafkomC_Kelompok4_FinalProject_NGEPET/
